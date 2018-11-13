@@ -5,7 +5,12 @@ to provide a more traditional way to perform logging in an erlang application
 that plays nicely with traditional UNIX logging tools like logrotate and
 syslog.
 
+由于lager的lager_file_backend和lager_crash_log都保留了当前写入的日志文件，并且是按照文件大小等方式来更换文件名称。但是实际的应用场景往往是通过按天来更新文件，所以在lager_file_backend以及lager_crash_log的基础上改写了逻辑,添加lager_file_backend2和lager_crash_log2两个文件，实现如下功能：
+- 改写rotate逻辑，实现按天更新文件名
+- 在两个模块中加入了对日志文件删除的命令cl的处理
+- 修改了lager_sup,能够根据配置加载使用lager_crash_log2
 [Travis-CI](http://travis-ci.org/erlang-lager/lager) :: [![Travis-CI](https://travis-ci.org/erlang-lager/lager.svg?branch=master)](http://travis-ci.org/erlang-lager/lager)
+
 
 Features
 --------
@@ -191,11 +196,15 @@ will be applied on that sink.
           %% Default handlers for lager/lager_event
           {handlers, [
                       {lager_console_backend, [{level, info}]},
+                      %% {lager_file_backend2,[{file,"error/error.log"},{level,error}]}
+                      %%将会使用lager_file_backend2模块来处理
                       {lager_file_backend, [{file, "error.log"}, {level, error}]},
                       {lager_file_backend, [{file, "console.log"}, {level, info}]}
                      ]},
 
           %% Any other sinks
+          %% 默认情况下 {crash_log,"log/crash/crash.log"}将会启动lager_crash_log来生成crash日志
+          %%使用{crash_log,{day_rotate,"log/crash/crash.log"}}将会启用lager_crash_log2模块按天生成crash日志
           {extra_sinks,
            [
             {audit_lager_event,
