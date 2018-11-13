@@ -115,6 +115,12 @@ handle_info(rotate, #state{baseName=BaseName} = State) ->
     % _ = lager_util:rotate_logfile(Name, Count),
     %schedule_rotation(Date),
     {noreply, State1#state{name=NewFileName}};
+handle_info(cl,#state{baseName=BaseName}=State) ->
+    State1 = close_file(State),
+    LogDir = filename:dirname(BaseName),
+    do_clear_log(LogDir),
+    {noreply,State1};
+
 handle_info(_Info, State) ->
     {noreply, State}.
 
@@ -266,6 +272,11 @@ make_log_file(Name) ->
     {Year, Month, Day} = erlang:date(),
     filename:join([LogDir, FileName++io_lib:format("_~p_~p_~p", [Year, Month, Day])]).
 
+%%删除目录下所有文件
+do_clear_log(LogDir)->
+    FileList = filelib:wildcard(LogDir++"/*"),
+    [file:delete(F)||F<-FileList].
+    
 -ifdef(TEST).
 
 filesystem_test_() ->

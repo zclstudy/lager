@@ -155,6 +155,13 @@ handle_call({set_loghwm, Hwm}, #state{shaper=Shaper, name=Name} = State) ->
 handle_call(rotate, State = #state{baseName=File}) ->
     {ok, NewState} = handle_info({rotate, File}, State),
     {ok, ok, NewState};
+%%清空当前所有日志
+handle_call(cl,#state{baseName=BaseName} = State)->
+    %%关闭当前正打开的文件，设置fd=undefined
+    State1 = close_file(State),
+    LogDir = filename:dirname(BaseName),
+    do_clear_log(LogDir),
+    {ok,ok,State1};
 handle_call(_Request, State) ->
     {ok, ok, State}.
 
@@ -447,6 +454,11 @@ make_log_file(Name) ->
     {Year, Month, Day} = erlang:date(),
     filename:join([LogDir, FileName++io_lib:format("_~p_~p_~p", [Year, Month, Day])]).
 
+%%删除目录下所有文件
+do_clear_log(LogDir)->
+    FileList = filelib:wildcard(LogDir++"/*"),
+    [file:delete(F)||F<-FileList].
+    
 -ifdef(TEST).
 
 get_loglevel_test() ->
