@@ -9,6 +9,7 @@ syslog.
 - 改写rotate逻辑，实现按天更新文件名
 - 在两个模块中加入了对日志文件删除的命令cl的处理
 - 修改了lager_sup,能够根据配置加载使用lager_crash_log2
+
 [Travis-CI](http://travis-ci.org/erlang-lager/lager) :: [![Travis-CI](https://travis-ci.org/erlang-lager/lager.svg?branch=master)](http://travis-ci.org/erlang-lager/lager)
 
 
